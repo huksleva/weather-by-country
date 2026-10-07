@@ -1,0 +1,22 @@
+Recorded: 2026-10-07T14:21:56+03:00
+Python: 3.13.2
+Command: python main.py
+Source: actual stdout and stderr; live wttr.in requests
+
+Уникальных городов: 8
+Погода по городам:
+Moscow, Russia +15 °C
+Khabarovsk, Russia +5 °C
+Saint-Petersburg, Russia +13 °C
+Vienna, Austria +20 °C
+Izhevsk, Russia +10 °C
+Perm, Russia +8 °C
+NhaTrang, Vietnam +27 °C
+Villach, Austria +17 °C
+
+Статистика по странам:
+Austria — 2 cities, avg: +18.5 °C, min: +17 °C, max: +20 °C
+Russia — 5 cities, avg: +10.2 °C, min: +5 °C, max: +15 °C
+Vietnam — 1 cities, avg: +27 °C, min: +27 °C, max: +27 °C
+
+Exit code: 0
