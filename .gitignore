@@ -6,3 +6,6 @@ work/
 .env
 reports/*
 !reports/.gitkeep
+build/
+dist/
+*.egg-info/

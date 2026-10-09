@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weather-by-country"
+version = "0.1.0"
+description = "Current weather, country-level statistics and self-contained HTML reports."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Leonid Tots" }]
+keywords = ["weather", "wttr-in", "cli", "statistics", "html-report"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: OS Independent",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/huksleva/weather-by-country"
+Issues = "https://github.com/huksleva/weather-by-country/issues"
+Documentation = "https://github.com/huksleva/weather-by-country#readme"
+
+[project.scripts]
+weather-by-country = "weather_by_country.main:cli"
+
+[tool.setuptools]
+packages = ["weather_by_country"]
+package-dir = { weather_by_country = "." }
+include-package-data = false
+
+[tool.setuptools.package-data]
+weather_by_country = ["cities.txt", "report_template.html"]

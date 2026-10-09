@@ -28,6 +28,16 @@ class WeatherTests(unittest.TestCase):
         path.write_text(text, encoding="utf-8")
         return path
 
+    def test_cli_returns_main_exit_status(self):
+        with patch("main.main", return_value=3):
+            self.assertEqual(main.cli(), 3)
+
+    def test_cli_handles_keyboard_interrupt(self):
+        with patch("main.main", side_effect=KeyboardInterrupt), \
+                contextlib.redirect_stderr(io.StringIO()) as errors:
+            self.assertEqual(main.cli(), 130)
+        self.assertIn("Выполнение прервано", errors.getvalue())
+
     def test_cities_bom_blanks_and_duplicates(self):
         path = self.make_file("\ufeff Moscow \r\n\r\nTokyo\r\nmoscow\n東京\nTokyo\n")
         self.assertEqual(main.load_cities(path), ["Moscow", "Tokyo", "東京"])

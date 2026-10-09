@@ -160,6 +160,39 @@ python3 main.py
 
 [Статический снимок](docs/assets/demo.png) · [Текстовая версия вывода](docs/assets/demo.txt)
 
+## Установка Python-приложения
+
+<details>
+<summary><strong>Установить в виртуальное окружение и запускать командой weather-by-country</strong></summary>
+
+Этот вариант нужен, если вы хотите установить приложение через `pip`.
+Команды выполняются из папки проекта. Для сборки `pip` скачивает `setuptools`;
+зависимости самой программы отсутствуют. Docker и запуск `python main.py`
+не требуют установки пакета.
+
+**Windows 11 — CMD или PowerShell:**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python -m pip install .
+.\.venv\Scripts\weather-by-country
+```
+
+**Linux / macOS:**
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install .
+.venv/bin/weather-by-country
+```
+
+После активации виртуального окружения приложение можно запускать
+командой `weather-by-country` из любой папки. В установленный пакет входят
+список городов задания и шаблон HTML. Отчёт сохраняется в `reports/`
+относительно текущей папки; параметры такие же, как у `python main.py`.
+
+</details>
+
 ## Параметры Python
 
 Все команды в этом разделе выполняются из папки проекта.
@@ -369,7 +402,8 @@ python -m unittest discover -s tests -v
 после записи и ошибки файловой системы.
 
 [GitHub Actions](https://github.com/huksleva/weather-by-country/actions/workflows/tests.yml)
-запускает тесты и проверяет `--help` при каждом push в `main` и в pull request:
+запускает тесты, проверяет `--help`, установку пакета и генерацию HTML
+вне репозитория при каждом push в `main` и в pull request:
 
 | Платформа | Версии Python |
 | --- | --- |
@@ -394,6 +428,8 @@ docker run --rm --network none --read-only --tmpfs /tmp weather-by-country:test
 
 ```text
 weather-by-country/
+├── pyproject.toml             # Метаданные, сборка пакета и команда приложения
+├── __init__.py                # Python-пакет weather_by_country
 ├── main.py                    # CLI, запросы, модели и статистика
 ├── report.py                  # Расчёт показателей отчёта и запись HTML
 ├── report_template.html        # Автономное оформление, поиск и фильтры

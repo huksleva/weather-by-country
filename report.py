@@ -8,7 +8,10 @@ import tempfile
 from typing import TYPE_CHECKING, Mapping, Sequence
 
 if TYPE_CHECKING:
-    from main import CountryStatistics, WeatherData
+    if __package__:
+        from .main import CountryStatistics, WeatherData
+    else:
+        from main import CountryStatistics, WeatherData
 
 
 def format_temperature(value: float) -> str:

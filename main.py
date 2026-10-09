@@ -14,7 +14,10 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-from report import format_temperature, write_report
+if __package__:
+    from .report import format_temperature, write_report
+else:
+    from report import format_temperature, write_report
 
 
 @dataclass(frozen=True)
@@ -207,9 +210,14 @@ def main(argv: list[str] | None = None) -> int:
     return status
 
 
-if __name__ == "__main__":
+def cli() -> int:
+    """Run the CLI with the same interrupt handling for every launch method."""
     try:
-        raise SystemExit(main())
+        return main()
     except KeyboardInterrupt:
         print("\nВыполнение прервано.", file=sys.stderr)
-        raise SystemExit(130)
+        return 130
+
+
+if __name__ == "__main__":
+    raise SystemExit(cli())
