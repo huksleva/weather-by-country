@@ -9,6 +9,7 @@ import time
 import webbrowser
 from collections import defaultdict
 from dataclasses import dataclass
+from http.client import HTTPException
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -78,7 +79,7 @@ def fetch_weather(city: str, timeout: float = 20, attempts: int = 3) -> WeatherD
         raise ValueError("Тайм-аут и количество попыток должны быть положительными.")
     url = f"https://wttr.in/{quote(city, safe='')}?format=j1"
     request = Request(url, headers={
-        "User-Agent": "weather-by-country/1.0",
+        "User-Agent": "weather-by-country/0.1.0",
         "Accept": "application/json",
     })
     for attempt in range(attempts):
@@ -92,7 +93,7 @@ def fetch_weather(city: str, timeout: float = 20, attempts: int = 3) -> WeatherD
             error.close()
             if not retryable:
                 raise WeatherError(message) from error
-        except (URLError, TimeoutError, OSError) as error:
+        except (URLError, TimeoutError, OSError, HTTPException) as error:
             message = f"Ошибка сети: {error}"
         except (json.JSONDecodeError, UnicodeDecodeError) as error:
             raise WeatherError("API вернул некорректный JSON.") from error

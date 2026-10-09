@@ -1,10 +1,11 @@
 import contextlib
 import io
 import json
+from http.client import IncompleteRead
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError, URLError
 
 import main
@@ -92,6 +93,33 @@ class WeatherTests(unittest.TestCase):
                 main.fetch_weather("Tokyo", attempts=3)
         self.assertEqual(request.call_count, 3)
         self.assertEqual([call.args[0] for call in sleep.call_args_list], [1, 2])
+
+    def test_interrupted_response_is_retried_and_closed(self):
+        response = Mock()
+        response.__enter__ = Mock(return_value=response)
+        response.__exit__ = Mock(return_value=False)
+        response.read.side_effect = IncompleteRead(b'{"current', 100)
+        body = io.BytesIO(json.dumps(payload()).encode("utf-8"))
+        with patch("main.urlopen", side_effect=[response, body]) as request, \
+                patch("main.time.sleep") as sleep:
+            self.assertEqual(main.fetch_weather("Tokyo").temperature_c, 18)
+        self.assertEqual(request.call_count, 2)
+        response.__exit__.assert_called_once()
+        sleep.assert_called_once_with(1)
+
+    def test_repeated_incomplete_responses_skip_city_and_continue(self):
+        path = self.make_file("Tokyo\nOsaka\n")
+        body = io.BytesIO(json.dumps(payload("22")).encode("utf-8"))
+        with patch("main.urlopen", side_effect=[IncompleteRead(b"partial", 100),
+                                               IncompleteRead(b"partial", 100), body]) as request, \
+                patch("main.time.sleep"), contextlib.redirect_stdout(io.StringIO()) as output, \
+                contextlib.redirect_stderr(io.StringIO()) as errors:
+            status = main.main([str(path), "--attempts", "2", "--no-report"])
+        self.assertEqual(status, 1)
+        self.assertEqual(request.call_count, 3)
+        self.assertIn("Osaka, Japan +22 °C", output.getvalue())
+        self.assertIn("Japan — 1 cities, avg: +22 °C", output.getvalue())
+        self.assertIn("Не обработаны: Tokyo", errors.getvalue())
 
     def test_bad_json_is_not_retried(self):
         with patch("main.urlopen", return_value=io.BytesIO(b"<html>error</html>")) \

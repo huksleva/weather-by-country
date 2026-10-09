@@ -74,7 +74,13 @@ def run_docker(project: Path, open_browser: bool = True) -> int:
         return process.wait()
     except KeyboardInterrupt:
         # Stop only this project's weather service; keep its report volume.
-        process.terminate()
+        if process.poll() is None:
+            try:
+                process.terminate()
+            except OSError:
+                # Compose can finish between poll() and terminate(), especially on Windows.
+                if process.poll() is None:
+                    raise
         try:
             process.wait(timeout=10)
         except subprocess.TimeoutExpired:

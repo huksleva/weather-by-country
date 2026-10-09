@@ -54,10 +54,6 @@ class ReportServerTests(unittest.TestCase):
         self.assertEqual(error.exception.code, 404)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class BrowserOpeningTests(unittest.TestCase):
     def test_browser_opens_after_server_is_bound(self):
         server = create_report_server(Path("unused.html"), port=0)
@@ -80,3 +76,7 @@ class BrowserOpeningTests(unittest.TestCase):
             serve_report(Path("unused.html"), open_browser=True)
         serve.assert_called_once()
         self.assertIn("Не удалось открыть браузер", output.getvalue())
+
+
+if __name__ == "__main__":
+    unittest.main()
