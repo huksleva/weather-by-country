@@ -72,13 +72,16 @@ docker compose run --rm --build --user "$(id -u):$(id -g)" weather
 
 **Нужен установленный Python 3.10 или новее.** Дополнительные пакеты
 устанавливать не нужно: используются только модули стандартной библиотеки.
+Блок команд создаёт отдельное окружение `.venv` и запускает Python из него;
+активировать окружение отдельно не требуется.
 
 **Windows 11 — CMD или PowerShell:**
 
 ```powershell
 git clone https://github.com/huksleva/weather-by-country.git
 cd weather-by-country
-python main.py
+python -m venv .venv
+.\.venv\Scripts\python main.py
 ```
 
 **Linux или macOS — терминал:**
@@ -86,7 +89,8 @@ python main.py
 ```sh
 git clone https://github.com/huksleva/weather-by-country.git
 cd weather-by-country
-python3 main.py
+python3 -m venv .venv
+.venv/bin/python main.py
 ```
 
 Отчёт открывается в браузере и сохраняется в `reports/weather-report.html`.
@@ -95,7 +99,8 @@ python3 main.py
 ### Повторный запуск
 
 Если проект уже скачан, откройте терминал **в папке `weather-by-country`**
-и скопируйте нужную команду. Повторно клонировать репозиторий не нужно.
+и скопируйте нужную команду. Для повторного ручного запуска окружение `.venv`
+должно быть создано командами выше.
 
 <details>
 <summary><strong>Показать команды для уже скачанного проекта</strong></summary>
@@ -115,13 +120,13 @@ docker compose run --rm --build --user "$(id -u):$(id -g)" weather
 **Вручную через Python — Windows 11:**
 
 ```powershell
-python main.py
+.\.venv\Scripts\python main.py
 ```
 
 **Вручную через Python — Linux / macOS:**
 
 ```sh
-python3 main.py
+.venv/bin/python main.py
 ```
 
 </details>
@@ -236,9 +241,13 @@ python main.py --report reports/today.html --no-open
 
 ```text
 Moscow
+Khabarovsk
+Saint-Petersburg
 Vienna
+Izhevsk
+Perm
 NhaTrang
-Moscow
+Villach
 ```
 
 Пробелы по краям и пустые строки игнорируются. Повторы сравниваются без учёта
