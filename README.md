@@ -15,10 +15,10 @@
 </p>
 
 <p>
+  <a href="#быстрый-старт">Запуск</a> ·
   <a href="#html-отчёт">HTML-отчёт</a> ·
   <a href="#демонстрация">Демонстрация</a> ·
-  <a href="#быстрый-старт">Быстрый старт</a> ·
-  <a href="#использование">Использование</a> ·
+  <a href="#параметры-python">Параметры</a> ·
   <a href="#проверка">Проверка</a> ·
   <a href="CONTRIBUTING.md">Contributing</a> ·
   <a href="SECURITY.md">Security</a>
@@ -26,17 +26,107 @@
 
 </div>
 
-Консольная программа на Python: читает список городов из файла, запрашивает
-текущую температуру через [wttr.in](https://github.com/chubin/wttr.in#json-output)
-и группирует результаты по странам. Проект создан как решение тестового задания;
-все температуры и итоговые показатели получаются и вычисляются во время запуска.
+Программа получает текущую погоду через [wttr.in](https://github.com/chubin/wttr.in#json-output),
+рассчитывает статистику по странам и открывает HTML-отчёт в браузере.
 
-- **Три платформы:** Windows 11, Linux и macOS; запуск через Docker Compose.
-- **Отчёт в браузере:** карточки городов, поиск, фильтры, сортировка и печать в PDF.
-- **Без установки пакетов:** только стандартная библиотека, без API-ключа.
-- **Один город — один результат:** пустые строки и повторы удаляются до запросов.
-- **Статистика по странам:** количество городов, среднее, минимум и максимум.
-- **Обработка сбоев:** тайм-ауты, повторные попытки и явное предупреждение о неполных данных.
+## Быстрый старт
+
+**Выберите один способ: Docker или вручную через Python.**
+Скопируйте весь блок кнопкой в его правом верхнем углу и вставьте в терминал.
+В каждом блоке есть все команды: скачать проект, перейти в папку и запустить.
+Для первого запуска нужны [Git](https://git-scm.com/downloads) и интернет;
+откройте терминал в папке, где хотите сохранить проект.
+
+Проект уже скачан? Используйте [команды повторного запуска](#повторный-запуск).
+
+### 1. Через Docker
+
+**Нужен запущенный Docker.** На Windows 11 и macOS —
+[Docker Desktop](https://www.docker.com/products/docker-desktop/);
+на Linux — Docker Engine с плагином Compose. На Windows выберите Linux containers.
+Python на компьютере не требуется.
+
+**Windows 11 — CMD или PowerShell:**
+
+```powershell
+git clone https://github.com/huksleva/weather-by-country.git
+cd weather-by-country
+.\run.cmd
+```
+
+**Linux или macOS — терминал:**
+
+```sh
+git clone https://github.com/huksleva/weather-by-country.git
+cd weather-by-country
+sh run.sh
+```
+
+Скрипт сам собирает и запускает контейнер. После расчётов отчёт открывается
+в браузере и сохраняется в `reports/`. Первый запуск может занять несколько минут:
+Docker скачивает образ Python. Каждый запуск создаёт отдельный HTML-файл.
+
+### 2. Вручную через Python
+
+**Нужен установленный Python 3.10 или новее.** Дополнительные пакеты
+устанавливать не нужно: используются только модули стандартной библиотеки.
+
+**Windows 11 — CMD или PowerShell:**
+
+```powershell
+git clone https://github.com/huksleva/weather-by-country.git
+cd weather-by-country
+python main.py
+```
+
+**Linux или macOS — терминал:**
+
+```sh
+git clone https://github.com/huksleva/weather-by-country.git
+cd weather-by-country
+python3 main.py
+```
+
+Отчёт открывается в браузере и сохраняется в `reports/weather-report.html`.
+Следующий запуск через Python перезапишет этот файл.
+
+### Повторный запуск
+
+Если проект уже скачан, откройте терминал **в папке `weather-by-country`**
+и скопируйте нужную команду. Повторно клонировать репозиторий не нужно.
+
+<details>
+<summary><strong>Показать команды для уже скачанного проекта</strong></summary>
+
+**Docker — Windows 11:**
+
+```powershell
+.\run.cmd
+```
+
+**Docker — Linux / macOS:**
+
+```sh
+sh run.sh
+```
+
+**Вручную через Python — Windows 11:**
+
+```powershell
+python main.py
+```
+
+**Вручную через Python — Linux / macOS:**
+
+```sh
+python3 main.py
+```
+
+</details>
+
+В комплекте уже есть `cities.txt` с восемью городами задания.
+Чтобы изменить список, отредактируйте этот файл и запустите программу снова.
+Если браузер не открылся, откройте HTML из папки `reports/` вручную.
 
 ## HTML-отчёт
 
@@ -68,119 +158,11 @@
 
 [Статический снимок](docs/assets/demo.png) · [Текстовая версия вывода](docs/assets/demo.txt)
 
-## Быстрый старт
+## Параметры Python
 
-### Через Docker с автоматическим открытием отчёта
-
-Установите и запустите Docker. Python на компьютере для этого варианта не нужен.
-
-| Система | Требования |
-| --- | --- |
-| Windows 11 | [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) с WSL 2 и режимом Linux containers |
-| macOS, Intel или Apple Silicon | [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/) для своей архитектуры |
-| Linux, AMD64 или ARM64 | [Docker Engine](https://docs.docker.com/engine/install/) и [плагин Compose](https://docs.docker.com/compose/install/linux/), либо Docker Desktop |
-
-Сначала клонируйте проект:
-
-```console
-git clone https://github.com/huksleva/weather-by-country.git
-cd weather-by-country
-```
-
-Запустите скрипт своей системы из папки проекта:
-
-| Система | Команда |
-| --- | --- |
-| Windows 11, CMD | `run.cmd` |
-| Windows 11, PowerShell | `.\run.cmd` |
-| Linux или macOS | `sh run.sh` |
-
-Скрипт собирает и запускает контейнер, сохраняет новый отчёт в `reports/`
-и открывает его в браузере по умолчанию. Каждый запуск создаёт отдельный файл;
-отчёт остаётся на компьютере после удаления контейнера.
-На Linux для открытия нужен графический сеанс и `xdg-open`; на macOS используется `open`.
-На сервере без браузера HTML можно открыть вручную на другом компьютере.
-
-Первый запуск скачивает официальный образ Python 3.13 и собирает контейнер.
-Программа выводит данные в консоль, сохраняет HTML и завершается; `--rm` удаляет завершённый контейнер.
-Публиковать порты или запускать фоновый сервис не требуется.
-Для сборки и получения погоды нужен интернет.
-
-На всех трёх системах выполняется один и тот же Linux-контейнер. Архитектура
-выбирается при локальной сборке: `linux/amd64` для Intel/AMD или `linux/arm64`
-для ARM, включая Apple Silicon. Эмуляция ARM на Mac для обычного запуска не нужна.
-
-`cities.txt` подключается с компьютера в режиме только для чтения, поэтому его
-можно редактировать без изменения программы. Параметры CLI передаются после
-команды запуска:
-
-```console
-# Windows CMD
-run.cmd --timeout 15 --attempts 2
-
-# Linux / macOS
-sh run.sh --timeout 15 --attempts 2
-```
-
-Автоматическое открытие отключается переменной `WEATHER_NO_OPEN=1`, заданной
-на компьютере перед запуском скрипта. Для режима без HTML передайте `--no-report`.
-Скрипты сами выбирают путь отчёта; собственный `--report` удобнее задавать при прямом запуске Python или Compose.
-
-Для ручного запуска без автоматического открытия браузера:
-
-```console
-docker compose run --rm --build weather
-```
-
-HTML появится в `reports/weather-report.html`; следующий прямой запуск перезапишет его.
-На Linux сначала создайте папку от имени своего пользователя и передайте его UID/GID:
-
-```sh
-mkdir -p reports
-LOCAL_UID=$(id -u) LOCAL_GID=$(id -g) docker compose run --rm --build weather
-```
-
-`run.sh` делает это автоматически. Скрипт на macOS тоже передаёт UID/GID.
-Не запускайте `run.sh` через `sudo`: пользователь должен иметь доступ к Docker.
-Без вывода HTML можно использовать `docker compose run --rm weather --no-report`.
-
-Для другого входного файла создайте `.env` рядом с `compose.yaml`
-(образец — [.env.example](.env.example)):
-
-```dotenv
-CITIES_FILE="./data/my cities.txt"
-```
-
-Путь может быть относительным к `compose.yaml`; файл должен существовать
-и быть доступен на чтение. Он подключается в `/app/cities.txt`. После сохранения
-`.env` используйте ту же команду запуска. Отсутствующий файл не будет автоматически
-создан как каталог.
-
-Если Compose недоступен, контейнер со встроенным списком городов запускается так:
-
-```console
-docker build --tag weather-by-country .
-docker run --rm weather-by-country --no-report
-```
-
-Этот вариант выводит только консольный отчёт. Для сохранения HTML на компьютере используйте Compose или скрипт запуска.
-
-### Через Python
-
-Нужны **Python 3.10+** и доступ к интернету. В папке клонированного проекта:
-
-```console
-python main.py
-```
-
-На Windows можно использовать `py main.py`, на Linux/macOS — `python3 main.py`,
-если команда `python` недоступна. Скрипт читает `cities.txt` рядом с собой.
-В комплекте — все восемь городов исходного задания.
-Устанавливать пакеты или настраивать учётную запись не требуется.
-HTML сохраняется в `reports/weather-report.html` относительно текущей папки
-и открывается через браузер по умолчанию. Следующий запуск перезаписывает этот файл.
-
-## Использование
+Все команды в этом разделе выполняются из папки проекта.
+На Linux/macOS используйте `python3` вместо `python`; на Windows также можно
+использовать `py`, если Python установлен с этим средством запуска.
 
 ```console
 python main.py [file] [--timeout SECONDS] [--attempts COUNT] [--report PATH] [--no-open] [--no-report]
@@ -276,6 +258,94 @@ docker compose run --rm -T weather --no-report > weather.txt 2> errors.txt
 | `2` | Ошибка входного файла или аргументов |
 | `3` | Не удалось записать HTML; консольные результаты уже выведены |
 | `130` | Выполнение прервано пользователем |
+
+## Дополнительная настройка Docker
+
+<details>
+<summary><strong>Требования, параметры, свой файл городов и прямой запуск Compose</strong></summary>
+
+### Установка Docker
+
+| Система | Требования |
+| --- | --- |
+| Windows 11 | [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) с WSL 2 и режимом Linux containers |
+| macOS, Intel или Apple Silicon | [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/) для своей архитектуры |
+| Linux, AMD64 или ARM64 | [Docker Engine](https://docs.docker.com/engine/install/) и [плагин Compose](https://docs.docker.com/compose/install/linux/), либо Docker Desktop |
+
+Запускается Linux-контейнер для архитектуры компьютера: AMD64 или ARM64.
+Публиковать порты и запускать фоновый сервис не требуется.
+На Linux автоматическое открытие HTML требует графического сеанса и `xdg-open`;
+на macOS используется `open`. На сервере файл можно открыть вручную на другом компьютере.
+
+### Параметры запуска
+
+Команды выполняются из папки проекта. Например, тайм-аут 15 секунд и две попытки:
+
+**Windows 11:**
+
+```powershell
+.\run.cmd --timeout 15 --attempts 2
+```
+
+**Linux / macOS:**
+
+```sh
+sh run.sh --timeout 15 --attempts 2
+```
+
+Переменная `WEATHER_NO_OPEN=1`, заданная на компьютере, отключает открытие браузера.
+Флаг `--no-report` включает только консольный вывод.
+Скрипты выбирают путь HTML автоматически; собственный `--report` задавайте
+при прямом запуске Python или Compose.
+
+### Другой файл городов
+
+`cities.txt` подключается к контейнеру только для чтения. Чтобы использовать
+другой файл, создайте `.env` рядом с `compose.yaml`
+(образец — [.env.example](.env.example)):
+
+```dotenv
+CITIES_FILE="./data/my cities.txt"
+```
+
+Файл должен существовать и быть доступен на чтение. Путь отсчитывается
+от `compose.yaml`; внутри контейнера файл доступен как `/app/cities.txt`.
+После сохранения `.env` используйте обычную команду запуска.
+
+### Compose без скриптов
+
+Этот вариант сохраняет HTML, но не открывает браузер автоматически.
+Команды выполняются из папки проекта.
+
+**Windows 11:**
+
+```powershell
+docker compose run --rm --build weather
+```
+
+**Linux / macOS:**
+
+```sh
+mkdir -p reports
+LOCAL_UID=$(id -u) LOCAL_GID=$(id -g) docker compose run --rm --build weather
+```
+
+HTML появится в `reports/weather-report.html`. Следующий прямой запуск
+перезапишет этот файл. `run.sh` сам создаёт папку и передаёт UID/GID;
+запускайте его от пользователя с доступом к Docker.
+
+### Docker без Compose
+
+Со встроенным списком городов, только консольный вывод:
+
+```console
+docker build --tag weather-by-country .
+docker run --rm weather-by-country --no-report
+```
+
+Для сохранения HTML на компьютере используйте Compose или скрипты запуска.
+
+</details>
 
 ## Как это работает
 
