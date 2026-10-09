@@ -4,6 +4,7 @@
 <p>Текущая погода в городах. Понятная статистика по странам.</p>
 
 <p>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&amp;logoColor=white" alt="Запуск через Docker Compose"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&amp;logoColor=white" alt="Python 3.10 или новее"></a>
   <a href="https://github.com/huksleva/weather-by-country/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/huksleva/weather-by-country/tests.yml?branch=main&amp;label=tests&amp;logo=githubactions&amp;logoColor=white" alt="Статус автоматических тестов"></a>
   <img src="https://img.shields.io/badge/dependencies-stdlib%20only-64748B" alt="Только стандартная библиотека">
@@ -26,6 +27,7 @@
 и группирует результаты по странам. Проект создан как решение тестового задания;
 все температуры и итоговые показатели получаются и вычисляются во время запуска.
 
+- **Три платформы:** Windows 11, Linux и macOS; единая команда Docker Compose.
 - **Без установки пакетов:** только стандартная библиотека, без API-ключа.
 - **Один город — один результат:** пустые строки и повторы удаляются до запросов.
 - **Статистика по странам:** количество городов, среднее, минимум и максимум.
@@ -43,17 +45,73 @@
 
 ## Быстрый старт
 
-Нужны **Python 3.10+** и доступ к интернету.
+### Через Docker — одинаково на трёх платформах
+
+Установите и запустите Docker. Python на компьютере для этого варианта не нужен.
+
+| Система | Требования |
+| --- | --- |
+| Windows 11 | [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) с WSL 2 и режимом Linux containers |
+| macOS, Intel или Apple Silicon | [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/) для своей архитектуры |
+| Linux, AMD64 или ARM64 | [Docker Engine](https://docs.docker.com/engine/install/) и [плагин Compose](https://docs.docker.com/compose/install/linux/), либо Docker Desktop |
+
+Команды одинаковы в PowerShell на Windows и в терминале Linux/macOS:
 
 ```console
 git clone https://github.com/huksleva/weather-by-country.git
 cd weather-by-country
+docker compose run --rm --build weather
+```
+
+Первый запуск скачивает официальный образ Python 3.13 и собирает контейнер.
+Программа выводит отчёт и завершается; `--rm` удаляет завершённый контейнер.
+Публиковать порты или запускать фоновый сервис не требуется.
+Для сборки и получения погоды нужен интернет.
+
+На всех трёх системах выполняется один и тот же Linux-контейнер. Архитектура
+выбирается при локальной сборке: `linux/amd64` для Intel/AMD или `linux/arm64`
+для ARM, включая Apple Silicon. Эмуляция ARM на Mac для обычного запуска не нужна.
+
+`cities.txt` подключается с компьютера в режиме только для чтения, поэтому его
+можно редактировать без изменения программы. Параметры CLI передаются после
+имени сервиса:
+
+```console
+docker compose run --rm weather --timeout 15 --attempts 2
+docker compose run --rm weather --help
+```
+
+Для другого входного файла создайте `.env` рядом с `compose.yaml`
+(образец — [.env.example](.env.example)):
+
+```dotenv
+CITIES_FILE="./data/my cities.txt"
+```
+
+Путь может быть относительным к `compose.yaml`; файл должен существовать
+и быть доступен на чтение. Он подключается в `/app/cities.txt`. После сохранения
+`.env` используйте ту же команду запуска. Отсутствующий файл не будет автоматически
+создан как каталог.
+
+Если Compose недоступен, контейнер со встроенным списком городов запускается так:
+
+```console
+docker build --tag weather-by-country .
+docker run --rm weather-by-country
+```
+
+### Через Python
+
+Нужны **Python 3.10+** и доступ к интернету. В папке клонированного проекта:
+
+```console
 python main.py
 ```
 
-На Windows можно использовать `py main.py`. Команда `python main.py` читает
-`cities.txt` рядом со скриптом. В комплекте — все восемь городов исходного задания.
-Устанавливать зависимости или настраивать учётную запись не требуется.
+На Windows можно использовать `py main.py`, на Linux/macOS — `python3 main.py`,
+если команда `python` недоступна. Скрипт читает `cities.txt` рядом с собой.
+В комплекте — все восемь городов исходного задания.
+Устанавливать пакеты или настраивать учётную запись не требуется.
 
 ## Использование
 
@@ -110,6 +168,15 @@ Moscow
 ```console
 python main.py > weather.txt 2> errors.txt
 ```
+
+Для запуска через Compose:
+
+```console
+docker compose run --rm -T weather > weather.txt 2> errors.txt
+```
+
+`-T` отключает псевдотерминал для сохранения потоков. Compose также может
+добавлять собственные диагностические сообщения в `stderr`.
 
 ### Ошибки и повторные попытки
 
@@ -172,6 +239,20 @@ python -m unittest discover -s tests -v
 | --- | --- |
 | Ubuntu | 3.10, 3.13 |
 | Windows | 3.10, 3.13 |
+| macOS | 3.10, 3.13 |
+
+Дополнительно CI собирает и проверяет Docker-образы на **AMD64 и ARM64**:
+офлайн-тесты, справку CLI, запуск без root, подключение своего файла с пробелами
+и Unicode, а также передачу кода ошибки через Compose.
+Docker Desktop на macOS в CI не запускается: переносимость Linux-контейнера
+проверяется на двух архитектурах, а Python-код отдельно тестируется на macOS.
+
+Локальная проверка тех же тестов внутри контейнера:
+
+```console
+docker build --target test --tag weather-by-country:test .
+docker run --rm --network none --read-only --tmpfs /tmp weather-by-country:test
+```
 
 ## Структура проекта
 
@@ -179,6 +260,10 @@ python -m unittest discover -s tests -v
 weather-by-country/
 ├── main.py                    # CLI, запросы, модели и статистика
 ├── cities.txt                 # Исходный список городов
+├── Dockerfile                 # Образы для запуска и тестов
+├── compose.yaml               # Единая команда запуска и подключение входного файла
+├── .dockerignore              # В сборку попадают только необходимые исходники
+├── .env.example               # Образец выбора входного файла
 ├── tests/test_main.py          # Тесты без обращения к API
 ├── docs/assets/               # GIF, статический снимок и текст демонстрации
 ├── .github/workflows/tests.yml # Автоматические проверки
@@ -186,6 +271,16 @@ weather-by-country/
 ├── SECURITY.md                # Как сообщить об уязвимости
 └── LICENSE                    # MIT
 ```
+
+## Если Docker не запускается
+
+- **Нет команды `docker compose`:** установите плагин Compose или Docker Desktop.
+- **Cannot connect to the Docker daemon:** запустите Docker Desktop либо Docker Engine.
+- **На Windows выбран режим Windows containers:** переключитесь на Linux containers.
+- **Входной файл не найден или недоступен:** проверьте `CITIES_FILE`, существование
+  файла и права чтения; в контейнере он доступен как `/app/cities.txt`.
+- **API недоступен:** проверьте интернет, настройки прокси и диагностику `stderr`.
+  Правила обработки неполных результатов одинаковы для Docker и прямого запуска.
 
 ## Участие и поддержка
 

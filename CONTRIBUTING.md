@@ -27,9 +27,22 @@ python main.py --help
 git diff --check
 ```
 
+При изменении Dockerfile или Compose дополнительно выполните:
+
+```console
+docker compose config --quiet
+docker compose run --rm --build weather --help
+docker build --target test --tag weather-by-country:test .
+docker run --rm --network none --read-only --tmpfs /tmp weather-by-country:test
+```
+
+Обычный контейнер содержит только программу и список городов; тесты добавляются
+в отдельную стадию `test`. Не фиксируйте `platform: linux/amd64` в Compose:
+это лишит владельцев ARM-компьютеров сборки для своей архитектуры.
+
 ## Правила разработки
 
-- Поддерживайте Python 3.10 и новее, Windows и Linux.
+- Поддерживайте Python 3.10 и новее, Windows, Linux и macOS.
 - Используйте стандартную библиотеку; внешние пакеты не нужны.
 - Подменяйте HTTP-ответы в тестах через `unittest.mock`: тесты должны работать офлайн.
 - Не подставляйте фиктивные температуры при ошибках API.

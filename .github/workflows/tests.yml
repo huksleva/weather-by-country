@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.10', '3.13']
     env:
       PYTHONIOENCODING: utf-8
@@ -34,3 +34,48 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Check command-line help
         run: python main.py --help
+
+  docker:
+    name: Docker / ${{ matrix.architecture }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            architecture: amd64
+          - os: ubuntu-24.04-arm
+            architecture: arm64
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Validate Docker Compose configuration
+        run: docker compose config --quiet
+      - name: Build test image and run offline tests
+        run: |
+          docker build --target test --tag weather-by-country:test .
+          docker run --rm --network none --read-only --tmpfs /tmp weather-by-country:test
+      - name: Build runtime image and check command-line help
+        run: |
+          docker compose build weather
+          docker compose run --rm --no-deps weather --help
+      - name: Verify bundled input and non-root user
+        run: >-
+          docker compose run --rm --no-deps --entrypoint python weather -c
+          "from pathlib import Path; import main, os;
+          assert os.getuid() != 0;
+          assert len(main.load_cities(Path('/app/cities.txt'))) == 8"
+      - name: Verify custom input with spaces, BOM and Unicode
+        run: |
+          python -c "from pathlib import Path; Path('work').mkdir(exist_ok=True); Path('work/cities for Docker.txt').write_text('\ufeffMoscow\nmoscow\nМосква\n', encoding='utf-8')"
+          CITIES_FILE='./work/cities for Docker.txt' docker compose run --rm --no-deps --entrypoint python weather -c "from pathlib import Path; import main; assert main.load_cities(Path('/app/cities.txt')) == ['Moscow', 'Москва']"
+      - name: Verify CLI error exit code through Compose
+        run: |
+          set +e
+          docker compose run --rm --no-deps weather /app/missing-cities.txt
+          status=$?
+          set -e
+          test "$status" -eq 2
