@@ -1,0 +1,19 @@
+services:
+  weather:
+    image: weather-by-country:local
+    build:
+      context: .
+      target: runtime
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - type: bind
+        source: ${CITIES_FILE:-./cities.txt}
+        target: /app/cities.txt
+        read_only: true
+        bind:
+          create_host_path: false

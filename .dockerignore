@@ -1,0 +1,9 @@
+*
+!Dockerfile
+!.dockerignore
+!main.py
+!cities.txt
+!tests/
+!tests/**
+**/__pycache__/
+**/*.py[cod]
