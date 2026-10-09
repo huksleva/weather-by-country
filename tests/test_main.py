@@ -118,7 +118,7 @@ class WeatherTests(unittest.TestCase):
             main.WeatherData("Osaka", 21, "Japan"),
         ]) as fetch, contextlib.redirect_stdout(output), \
                 contextlib.redirect_stderr(errors):
-            status = main.main([str(path)])
+            status = main.main([str(path), "--no-report"])
         self.assertEqual(status, 0)
         self.assertEqual([call.args[0] for call in fetch.call_args_list],
                          ["Tokyo", "Osaka"])
@@ -133,7 +133,7 @@ class WeatherTests(unittest.TestCase):
             main.WeatherError("HTTP 503"),
             main.WeatherData("Osaka", 22, "Japan"),
         ]), contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
-            status = main.main([str(path)])
+            status = main.main([str(path), "--no-report"])
         self.assertEqual(status, 1)
         self.assertIn("avg: +20 °C", output.getvalue())
         self.assertIn("Получены данные для 2 из 3", errors.getvalue())
@@ -144,7 +144,7 @@ class WeatherTests(unittest.TestCase):
         output, errors = io.StringIO(), io.StringIO()
         with patch("main.fetch_weather", side_effect=main.WeatherError("offline")), \
                 contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
-            self.assertEqual(main.main([str(path)]), 1)
+            self.assertEqual(main.main([str(path), "--no-report"]), 1)
         self.assertNotIn("Статистика по странам:", output.getvalue())
         self.assertIn("Получены данные для 0 из 1", errors.getvalue())
 
@@ -152,7 +152,7 @@ class WeatherTests(unittest.TestCase):
         path = self.make_file(" \n")
         with patch("main.fetch_weather") as fetch, \
                 contextlib.redirect_stderr(io.StringIO()):
-            self.assertEqual(main.main([str(path)]), 2)
+            self.assertEqual(main.main([str(path), "--no-report"]), 2)
         fetch.assert_not_called()
 
 

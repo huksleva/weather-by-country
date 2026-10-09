@@ -3,14 +3,18 @@
 import argparse
 import json
 import math
+import os
 import sys
 import time
+import webbrowser
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+
+from report import format_temperature, write_report
 
 
 @dataclass(frozen=True)
@@ -111,16 +115,6 @@ def country_statistics(weather: list[WeatherData]) -> list[CountryStatistics]:
     ]
 
 
-def format_temperature(value: float) -> str:
-    # Keep two decimals for fractional averages; integers have no decimal tail.
-    rounded = round(value, 2)
-    if rounded == 0:
-        return "0 °C"
-    sign = "+" if rounded > 0 else "-"
-    number = f"{abs(rounded):.2f}".rstrip("0").rstrip(".")
-    return f"{sign}{number} °C"
-
-
 def positive_float(value: str) -> float:
     number = float(value)
     if not math.isfinite(number) or number <= 0:
@@ -148,6 +142,14 @@ def main(argv: list[str] | None = None) -> int:
                         help="Тайм-аут одного запроса в секундах (20).")
     parser.add_argument("--attempts", type=positive_int, default=3,
                         help="Максимум попыток при временной ошибке (3).")
+    parser.add_argument("--report", type=Path,
+                        default=Path(os.environ.get("WEATHER_REPORT_PATH", "reports/weather-report.html")),
+                        help="Путь к HTML-отчёту (reports/weather-report.html).")
+    parser.add_argument("--no-open", action="store_true",
+                        default=os.environ.get("WEATHER_NO_OPEN") == "1",
+                        help="Не открывать HTML-отчёт в браузере.")
+    parser.add_argument("--no-report", action="store_true",
+                        help="Вывести только консольный отчёт, без HTML.")
     args = parser.parse_args(argv)
     try:
         cities = load_cities(args.file)
@@ -157,22 +159,23 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"Уникальных городов: {len(cities)}", file=sys.stderr, flush=True)
     weather: list[WeatherData] = []
-    failed: list[str] = []
+    failed: dict[str, str] = {}
     print("Погода по городам:", flush=True)
     for city in cities:
         try:
             item = fetch_weather(city, args.timeout, args.attempts)
         except WeatherError as error:
-            failed.append(city)
+            failed[city] = str(error)
             print(f"{city}: {error}", file=sys.stderr, flush=True)
             continue
         weather.append(item)
         print(f"{item.city}, {item.country} {format_temperature(item.temperature_c)}",
               flush=True)
 
+    statistics = country_statistics(weather)
     if weather:
         print("\nСтатистика по странам:")
-        for item in country_statistics(weather):
+        for item in statistics:
             print(
                 f"{item.country} — {item.city_count} cities, "
                 f"avg: {format_temperature(item.average_c)}, "
@@ -185,8 +188,23 @@ def main(argv: list[str] | None = None) -> int:
             f"Статистика учитывает только успешно обработанные города. "
             f"Не обработаны: {', '.join(failed)}.", file=sys.stderr,
         )
-        return 1
-    return 0
+    status = 1 if failed else 0
+    if not args.no_report:
+        try:
+            report_path = write_report(args.report, weather, statistics, failed, len(cities))
+        except (OSError, UnicodeError) as error:
+            print(f"Не удалось сохранить HTML-отчёт: {error}", file=sys.stderr)
+            return 3
+        print(f"HTML-отчёт: {report_path}", file=sys.stderr, flush=True)
+        if not args.no_open:
+            try:
+                opened = webbrowser.open(report_path.as_uri(), new=2)
+            except (OSError, webbrowser.Error):
+                opened = False
+            if not opened:
+                print("Не удалось открыть браузер автоматически. Откройте HTML-файл вручную.",
+                      file=sys.stderr)
+    return status
 
 
 if __name__ == "__main__":
