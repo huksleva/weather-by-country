@@ -4,6 +4,8 @@ services:
     build:
       context: .
       target: runtime
+      args:
+        PYTHON_IMAGE: ${PYTHON_IMAGE:-public.ecr.aws/docker/library/python:3.13-slim}
     command: ["--serve", "--no-open"]
     environment:
       WEATHER_REPORT_PUBLIC_PORT: "${REPORT_PORT:-8000}"
