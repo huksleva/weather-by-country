@@ -15,9 +15,9 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 if __package__:
-    from .report import format_temperature, write_report
+    from .report import format_temperature, serve_report, write_report
 else:
-    from report import format_temperature, write_report
+    from report import format_temperature, serve_report, write_report
 
 
 @dataclass(frozen=True)
@@ -153,7 +153,15 @@ def main(argv: list[str] | None = None) -> int:
                         help="Не открывать HTML-отчёт в браузере.")
     parser.add_argument("--no-report", action="store_true",
                         help="Вывести только консольный отчёт, без HTML.")
+    parser.add_argument("--serve", action="store_true",
+                        help="Показать готовый отчёт через локальный HTTP-сервер.")
+    parser.add_argument("--port", type=positive_int, default=8000,
+                        help="Порт HTTP-сервера при --serve (8000).")
     args = parser.parse_args(argv)
+    if args.serve and args.no_report:
+        parser.error("--serve нельзя использовать с --no-report.")
+    if args.port > 65535:
+        parser.error("Порт должен быть от 1 до 65535.")
     try:
         cities = load_cities(args.file)
     except (OSError, UnicodeError, ValueError) as error:
@@ -199,7 +207,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Не удалось сохранить HTML-отчёт: {error}", file=sys.stderr)
             return 3
         print(f"HTML-отчёт: {report_path}", file=sys.stderr, flush=True)
-        if not args.no_open:
+        if not args.no_open and not args.serve:
             try:
                 opened = webbrowser.open(report_path.as_uri(), new=2)
             except (OSError, webbrowser.Error):
@@ -207,6 +215,13 @@ def main(argv: list[str] | None = None) -> int:
             if not opened:
                 print("Не удалось открыть браузер автоматически. Откройте HTML-файл вручную.",
                       file=sys.stderr)
+        if args.serve:
+            try:
+                serve_report(report_path, host=os.environ.get("WEATHER_REPORT_HOST", "127.0.0.1"),
+                             port=args.port)
+            except OSError as error:
+                print(f"Не удалось запустить просмотр отчёта: {error}", file=sys.stderr)
+                return 3
     return status
 
 

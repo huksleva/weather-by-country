@@ -4,7 +4,9 @@ services:
     build:
       context: .
       target: runtime
-    user: "${LOCAL_UID:-10001}:${LOCAL_GID:-10001}"
+    command: ["--serve", "--no-open"]
+    ports:
+      - "127.0.0.1:${REPORT_PORT:-8000}:8000"
     init: true
     read_only: true
     cap_drop:
@@ -18,8 +20,9 @@ services:
         read_only: true
         bind:
           create_host_path: false
-      - type: bind
-        source: ./reports
+      - type: volume
+        source: weather-reports
         target: /reports
-        bind:
-          create_host_path: false
+
+volumes:
+  weather-reports:

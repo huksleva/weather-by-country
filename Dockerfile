@@ -20,5 +20,7 @@ ENTRYPOINT ["python", "-m", "unittest", "discover", "-s", "tests", "-v"]
 
 FROM base AS runtime
 ENV WEATHER_REPORT_PATH=/reports/weather-report.html \
-    WEATHER_NO_OPEN=1
+    WEATHER_NO_OPEN=1 \
+    WEATHER_REPORT_HOST=0.0.0.0
+EXPOSE 8000
 ENTRYPOINT ["python", "/app/main.py"]

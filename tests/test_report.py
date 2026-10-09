@@ -32,6 +32,38 @@ class ReportTests(unittest.TestCase):
             status = main.main([str(self.input), "--report", str(self.output), *extra])
         return status, browser, errors.getvalue()
 
+    def test_serve_starts_after_saving_report_without_opening_browser(self):
+        def verify(path, **kwargs):
+            self.assertTrue(path.is_file())
+            self.assertIn("Tokyo", path.read_text(encoding="utf-8"))
+            self.assertEqual(kwargs["port"], 8000)
+        with patch("main.serve_report", side_effect=verify) as serve:
+            status, browser, _ = self.run_main(self.weather, ["--serve"])
+        self.assertEqual(status, 0)
+        serve.assert_called_once()
+        browser.assert_not_called()
+
+    def test_partial_report_is_available_in_serve_mode(self):
+        with patch("main.serve_report") as serve:
+            status, _, _ = self.run_main([self.weather[0], main.WeatherError("offline")], ["--serve"])
+        self.assertEqual(status, 1)
+        serve.assert_called_once()
+
+    def test_serve_bind_failure_preserves_saved_report(self):
+        with patch("main.serve_report", side_effect=OSError("port busy")):
+            status, _, errors = self.run_main(self.weather, ["--serve"])
+        self.assertEqual(status, 3)
+        self.assertTrue(self.output.is_file())
+        self.assertIn("port busy", errors)
+
+    def test_serve_requires_report_and_valid_port(self):
+        for arguments in (["--serve", "--no-report"], ["--serve", "--port", "65536"]):
+            with self.subTest(arguments=arguments), patch("main.fetch_weather") as fetch, \
+                    contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as error:
+                main.main(arguments)
+            self.assertEqual(error.exception.code, 2)
+            fetch.assert_not_called()
+
     def test_report_contains_actual_statistics_and_is_utf8(self):
         destination = report.write_report(self.output, self.weather, self.stats, {}, 2)
         self.assertEqual(destination, self.output.resolve())

@@ -2,10 +2,12 @@
 
 from datetime import datetime, timezone
 from html import escape
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import re
 import tempfile
 from typing import TYPE_CHECKING, Mapping, Sequence
+from urllib.parse import unquote, urlsplit
 
 if TYPE_CHECKING:
     if __package__:
@@ -140,3 +142,42 @@ def write_report(
         if temporary is not None:
             temporary.unlink(missing_ok=True)
     return destination
+
+
+def create_report_server(path: Path, host: str = "127.0.0.1", port: int = 8000) -> ThreadingHTTPServer:
+    """Serve only this report; no directories or other project files are exposed."""
+    report_path = path.resolve()
+
+    class ReportHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            route = unquote(urlsplit(self.path).path)
+            if route not in ("/", "/" + report_path.name, "/download"):
+                self.send_error(404)
+                return
+            try:
+                document = report_path.read_bytes()
+            except OSError:
+                self.send_error(404, "Report unavailable")
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(document)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            if route == "/download":
+                self.send_header("Content-Disposition", 'attachment; filename="weather-report.html"')
+            self.end_headers()
+            self.wfile.write(document)
+
+        def log_message(self, format, *args):
+            # Keep the console focused on weather results and the report URL.
+            pass
+
+    return ThreadingHTTPServer((host, port), ReportHandler)
+
+
+def serve_report(path: Path, host: str = "127.0.0.1", port: int = 8000) -> None:
+    with create_report_server(path, host, port) as server:
+        print(f"\nОтчёт готов: http://localhost:{server.server_port}/", flush=True)
+        print("Откройте адрес в браузере. Для остановки нажмите Ctrl+C.", flush=True)
+        server.serve_forever()

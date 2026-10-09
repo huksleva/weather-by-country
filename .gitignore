@@ -4,8 +4,7 @@ __pycache__/
 .venv/
 work/
 .env
-reports/*
-!reports/.gitkeep
+reports/
 build/
 dist/
 *.egg-info/

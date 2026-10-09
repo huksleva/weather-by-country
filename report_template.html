@@ -23,7 +23,8 @@
   <main class="page">
     <header class="topbar">
       <div class="brand"><span class="brand-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="9" cy="9" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.5 3.5 5 5M13 13l1.5 1.5M3.5 14.5 5 13M13 5l1.5-1.5" stroke="currentColor" stroke-linecap="round"/><path d="M11 23h10a4 4 0 0 0 .4-8 5.2 5.2 0 0 0-9.8-1.5A4.8 4.8 0 0 0 11 23Z" fill="#e5eefc" stroke="currentColor" stroke-width="1.7"/></svg></span><span>Weather by Country<small>WEATHER REPORT</small></span></div>
-      <button class="print-button" id="print-report" type="button"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 7V2h10v5M5 14H2V7h16v7h-3M5 11h10v7H5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Печать / PDF</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="print-button" id="download-report" type="button">Скачать HTML</button>
+      <button class="print-button" id="print-report" type="button"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 7V2h10v5M5 14H2V7h16v7h-3M5 11h10v7H5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Печать / PDF</button></div>
     </header>
     <section class="hero" aria-labelledby="report-title">
       <div><p class="eyebrow">Текущая температура · °C</p><h1 id="report-title">Погода по городам</h1><p class="subtitle">От отдельных городов — к общей картине по странам.</p></div>
@@ -81,6 +82,12 @@
       search.addEventListener('input', update);
       country.addEventListener('change', update);
       sort.addEventListener('change', update);
+      document.getElementById('download-report').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.href = location.protocol === 'file:' ? location.href : '/download';
+        link.download = 'weather-report.html';
+        link.click();
+      });
       document.getElementById('print-report').addEventListener('click', () => window.print());
       document.querySelectorAll('[data-local-time]').forEach(node => {
         const date = new Date(node.dateTime);
