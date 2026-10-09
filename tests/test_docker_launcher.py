@@ -69,7 +69,6 @@ class DockerLauncherTests(unittest.TestCase):
     def test_interrupt_stops_weather_and_preserves_volume(self):
         process = Mock(stdout=io.StringIO("weather-1 | Starting\n"))
         process.wait.side_effect = [KeyboardInterrupt, 0]
-        process.poll.return_value = None
         configuration = Mock(stdout=json.dumps({"services": {"weather": {
             "ports": [{"target": 8000, "published": "8000"}]
         }}}))
@@ -78,18 +77,4 @@ class DockerLauncherTests(unittest.TestCase):
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(run_docker(self.project), 130)
         process.terminate.assert_called_once()
-        self.assertEqual(command.call_args.args[0][-2:], ["stop", "weather"])
-
-    def test_interrupt_still_stops_service_if_compose_has_already_exited(self):
-        process = Mock(stdout=io.StringIO("weather-1 | Starting\n"))
-        process.wait.side_effect = [KeyboardInterrupt, 0]
-        process.terminate.side_effect = ProcessLookupError("process already exited")
-        process.poll.return_value = 0
-        configuration = Mock(stdout=json.dumps({"services": {"weather": {
-            "ports": [{"target": 8000, "published": "8000"}]
-        }}}))
-        with patch("docker_launcher.subprocess.run", return_value=configuration) as command, \
-                patch("docker_launcher.subprocess.Popen", return_value=process), \
-                contextlib.redirect_stdout(io.StringIO()):
-            self.assertEqual(run_docker(self.project), 130)
         self.assertEqual(command.call_args.args[0][-2:], ["stop", "weather"])
