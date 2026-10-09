@@ -22,4 +22,4 @@ services:
         source: ./reports
         target: /reports
         bind:
-          create_host_path: true
+          create_host_path: false
