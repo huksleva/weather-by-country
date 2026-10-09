@@ -491,6 +491,12 @@ weather-by-country/
 
 - **Нет команды `docker compose`:** установите плагин Compose или Docker Desktop.
 - **Cannot connect to the Docker daemon:** запустите Docker Desktop либо Docker Engine.
+- **Docker Desktop is unable to start / ERROR_NO_SYSTEM_RESOURCES (Windows):**
+  Docker/WSL не смог запустить свою виртуальную машину; сборка проекта ещё не началась.
+  Освободите память, закрыв ненужные приложения, и перезапустите Docker Desktop.
+  Если ошибка остаётся, перезагрузите Windows. Перед повторным запуском проверьте
+  `docker info`: в выводе должен быть раздел **Server** без ошибки.
+  Настройки памяти WSL описаны в [документации Microsoft](https://learn.microsoft.com/en-us/windows/wsl/wsl-config#main-wsl-settings).
 - **На Windows выбран режим Windows containers:** переключитесь на Linux containers.
 - **Входной файл не найден или недоступен:** проверьте `CITIES_FILE`, существование
   файла и права чтения; в контейнере он доступен как `/app/cities.txt`.
