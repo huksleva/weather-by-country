@@ -37,7 +37,8 @@
 Для первого запуска нужны [Git](https://git-scm.com/downloads) и интернет;
 откройте терминал в папке, где хотите сохранить проект.
 
-Проект уже скачан? Используйте [команды повторного запуска](#повторный-запуск).
+Папка `weather-by-country` уже существует? Повторный `git clone` не нужен.
+Откройте эту папку и используйте [команды обновления и повторного запуска](#повторный-запуск).
 
 ### 1. Через Docker
 
@@ -122,7 +123,8 @@ python3 -m venv .venv
 ### Повторный запуск
 
 Если проект уже скачан, откройте терминал **в папке `weather-by-country`**
-и скопируйте нужную команду. Для повторного ручного запуска окружение `.venv`
+и скопируйте нужный блок. Первая команда обновит код из GitHub,
+вторая запустит актуальную версию. Для повторного ручного запуска окружение `.venv`
 должно быть создано командами выше.
 
 <details>
@@ -131,24 +133,28 @@ python3 -m venv .venv
 **Docker — любая ОС:**
 
 ```console
+git pull --ff-only
 docker compose up --build
 ```
 
 **Docker с автоматическим открытием — Python установлен на компьютере:**
 
 ```console
+git pull --ff-only
 python main.py --docker
 ```
 
 **Вручную через Python — Windows 11:**
 
 ```powershell
+git pull --ff-only
 .\.venv\Scripts\python main.py
 ```
 
 **Вручную через Python — Linux / macOS:**
 
 ```sh
+git pull --ff-only
 .venv/bin/python main.py
 ```
 
@@ -491,6 +497,12 @@ weather-by-country/
 
 ## Если Docker не запускается
 
+- **`destination path 'weather-by-country' already exists`:** проект уже скачан.
+  Перейдите в существующую папку и выполните команды обновления из раздела
+  [повторного запуска](#повторный-запуск).
+- **В сборке всё ещё указан `FROM python:3.13-slim` и ошибка `504` от `auth.docker.io`:**
+  используется старая копия проекта. В её папке выполните `git pull --ff-only`,
+  затем `docker compose up --build`. Новый Dockerfile скачивает Python из ECR Public.
 - **Нет команды `docker compose`:** установите плагин Compose или Docker Desktop.
 - **Cannot connect to the Docker daemon:** запустите Docker Desktop либо Docker Engine.
 - **Docker Desktop is unable to start / ERROR_NO_SYSTEM_RESOURCES (Windows):**
