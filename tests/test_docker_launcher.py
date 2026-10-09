@@ -31,7 +31,7 @@ class DockerLauncherTests(unittest.TestCase):
         return result, launch, browser, errors.getvalue()
 
     def test_opens_host_port_once_only_after_report_is_ready(self):
-        logs = "weather-1 | Calculating\nweather-1 | Отчёт готов: http://localhost:8000/\n" * 2
+        logs = "weather-1 | Calculating\nweather-1 | Отчёт готов.\n" * 2
         result, launch, browser, _ = self.launch(logs)
         self.assertEqual(result, 0)
         browser.assert_called_once_with("http://localhost:8123/", new=2)
@@ -48,13 +48,13 @@ class DockerLauncherTests(unittest.TestCase):
         browser.assert_not_called()
 
     def test_no_open_preserves_docker_run(self):
-        result, _, browser, _ = self.launch("weather-1 | Отчёт готов: http://localhost:8000/\n",
+        result, _, browser, _ = self.launch("weather-1 | Отчёт готов.\n",
                                            open_browser=False)
         self.assertEqual(result, 0)
         browser.assert_not_called()
 
     def test_browser_failure_keeps_report_available(self):
-        result, _, browser, errors = self.launch("weather-1 | Отчёт готов: http://localhost:8000/\n",
+        result, _, browser, errors = self.launch("weather-1 | Отчёт готов.\n",
                                                 browser_result=False)
         self.assertEqual(result, 0)
         browser.assert_called_once()

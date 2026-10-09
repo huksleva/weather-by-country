@@ -60,9 +60,9 @@ def run_docker(project: Path, open_browser: bool = True) -> int:
             print(line, end="", flush=True)
             # Compose prefixes container logs; never open arbitrary URLs from them.
             message = line.split("|", 1)[-1].strip()
-            if message == "Отчёт готов: http://localhost:8000/" and not attempted:
+            if message == "Отчёт готов." and not attempted:
                 attempted = True
-                print(f"Отчёт на компьютере: {url}", flush=True)
+                print(f"Отчёт доступен по адресу: {url}", flush=True)
                 if open_browser:
                     try:
                         opened = webbrowser.open(url, new=2)

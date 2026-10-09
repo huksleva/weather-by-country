@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from html import escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import os
 import re
 import tempfile
 import webbrowser
@@ -181,7 +182,10 @@ def serve_report(path: Path, host: str = "127.0.0.1", port: int = 8000,
                  open_browser: bool = False) -> None:
     with create_report_server(path, host, port) as server:
         url = f"http://localhost:{server.server_port}/"
-        print(f"\nОтчёт готов: {url}", flush=True)
+        public_port = os.environ.get("WEATHER_REPORT_PUBLIC_PORT", str(server.server_port))
+        public_url = f"http://localhost:{public_port}/"
+        print("\nОтчёт готов.", flush=True)
+        print(f"Отчёт доступен по адресу: {public_url}", flush=True)
         if open_browser:
             try:
                 opened = webbrowser.open(url, new=2)
@@ -189,5 +193,8 @@ def serve_report(path: Path, host: str = "127.0.0.1", port: int = 8000,
                 opened = False
             if not opened:
                 print(f"Не удалось открыть браузер автоматически. Откройте {url}", flush=True)
-        print("Откройте адрес в браузере. Для остановки нажмите Ctrl+C.", flush=True)
+        print("Откройте этот адрес в браузере на компьютере. "
+              "Чтобы сохранить отчёт, нажмите «Скачать HTML» на странице.", flush=True)
+        print("Адрес доступен, пока программа запущена. Для остановки нажмите Ctrl+C.",
+              flush=True)
         server.serve_forever()

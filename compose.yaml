@@ -5,6 +5,8 @@ services:
       context: .
       target: runtime
     command: ["--serve", "--no-open"]
+    environment:
+      WEATHER_REPORT_PUBLIC_PORT: "${REPORT_PORT:-8000}"
     ports:
       - "127.0.0.1:${REPORT_PORT:-8000}:8000"
     init: true
