@@ -6,6 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import re
 import tempfile
+import webbrowser
 from typing import TYPE_CHECKING, Mapping, Sequence
 from urllib.parse import unquote, urlsplit
 
@@ -176,8 +177,17 @@ def create_report_server(path: Path, host: str = "127.0.0.1", port: int = 8000) 
     return ThreadingHTTPServer((host, port), ReportHandler)
 
 
-def serve_report(path: Path, host: str = "127.0.0.1", port: int = 8000) -> None:
+def serve_report(path: Path, host: str = "127.0.0.1", port: int = 8000,
+                 open_browser: bool = False) -> None:
     with create_report_server(path, host, port) as server:
-        print(f"\nОтчёт готов: http://localhost:{server.server_port}/", flush=True)
+        url = f"http://localhost:{server.server_port}/"
+        print(f"\nОтчёт готов: {url}", flush=True)
+        if open_browser:
+            try:
+                opened = webbrowser.open(url, new=2)
+            except (OSError, webbrowser.Error):
+                opened = False
+            if not opened:
+                print(f"Не удалось открыть браузер автоматически. Откройте {url}", flush=True)
         print("Откройте адрес в браузере. Для остановки нажмите Ctrl+C.", flush=True)
         server.serve_forever()

@@ -3,10 +3,13 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
+import contextlib
+import io
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
-from report import create_report_server
+from report import create_report_server, serve_report
 
 
 class ReportServerTests(unittest.TestCase):
@@ -53,3 +56,27 @@ class ReportServerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BrowserOpeningTests(unittest.TestCase):
+    def test_browser_opens_after_server_is_bound(self):
+        server = create_report_server(Path("unused.html"), port=0)
+        url = f"http://localhost:{server.server_port}/"
+        events = []
+        with patch("report.create_report_server", return_value=server), \
+                patch("report.webbrowser.open", side_effect=lambda *args, **kwargs: events.append("open") or True) as browser, \
+                patch.object(server, "serve_forever", side_effect=lambda: events.append("serve")), \
+                contextlib.redirect_stdout(io.StringIO()):
+            serve_report(Path("unused.html"), open_browser=True)
+        browser.assert_called_once_with(url, new=2)
+        self.assertEqual(events, ["open", "serve"])
+
+    def test_browser_failure_does_not_stop_server(self):
+        server = create_report_server(Path("unused.html"), port=0)
+        with patch("report.create_report_server", return_value=server), \
+                patch("report.webbrowser.open", side_effect=OSError("no GUI")), \
+                patch.object(server, "serve_forever") as serve, \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            serve_report(Path("unused.html"), open_browser=True)
+        serve.assert_called_once()
+        self.assertIn("Не удалось открыть браузер", output.getvalue())

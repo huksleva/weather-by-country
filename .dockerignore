@@ -2,6 +2,7 @@
 !Dockerfile
 !.dockerignore
 !main.py
+!docker_launcher.py
 !report.py
 !report_template.html
 !cities.txt

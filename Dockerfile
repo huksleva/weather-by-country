@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.title="Weather by Country" \
       org.opencontainers.image.licenses="MIT"
 
 WORKDIR /app
-COPY main.py report.py report_template.html cities.txt ./
+COPY main.py docker_launcher.py report.py report_template.html cities.txt ./
 RUN mkdir /reports && chown 10001:10001 /reports
 USER 10001:10001
 

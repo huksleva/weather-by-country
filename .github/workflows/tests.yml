@@ -116,3 +116,30 @@ jobs:
       - name: Stop test report server
         if: always()
         run: docker rm -f weather-report-ci 2>/dev/null || true
+      - name: Verify host launcher waits for the report and opens the browser
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from unittest.mock import patch
+          from urllib.request import urlopen
+          from docker_launcher import run_docker
+          script = "from unittest.mock import patch; import main; mock = patch('main.fetch_weather', side_effect=lambda city, *args: main.WeatherData(city, -7, 'Browser test country')); mock.start(); raise SystemExit(main.main(['--serve', '--no-open']))"
+          override = Path('work/browser-compose.json')
+          override.parent.mkdir(exist_ok=True)
+          override.write_text(json.dumps({'services': {'weather': {'entrypoint': ['python', '-c', script], 'command': []}}}), encoding='utf-8')
+          os.environ['COMPOSE_FILE'] = os.pathsep.join(['compose.yaml', str(override)])
+          opened = []
+          def open_browser(url, new):
+              with urlopen(url, timeout=5) as response:
+                  assert 'Browser test country' in response.read().decode('utf-8')
+              opened.append(url)
+              raise KeyboardInterrupt
+          with patch('docker_launcher.webbrowser.open', side_effect=open_browser):
+              assert run_docker(Path.cwd()) == 130
+          assert opened == ['http://localhost:8000/']
+          PY
+      - name: Stop launcher test service
+        if: always()
+        run: docker compose stop weather

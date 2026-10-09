@@ -32,16 +32,40 @@ class ReportTests(unittest.TestCase):
             status = main.main([str(self.input), "--report", str(self.output), *extra])
         return status, browser, errors.getvalue()
 
-    def test_serve_starts_after_saving_report_without_opening_browser(self):
+    def test_serve_requests_browser_only_after_saving_report(self):
         def verify(path, **kwargs):
             self.assertTrue(path.is_file())
             self.assertIn("Tokyo", path.read_text(encoding="utf-8"))
             self.assertEqual(kwargs["port"], 8000)
+            self.assertTrue(kwargs["open_browser"])
         with patch("main.serve_report", side_effect=verify) as serve:
             status, browser, _ = self.run_main(self.weather, ["--serve"])
         self.assertEqual(status, 0)
         serve.assert_called_once()
         browser.assert_not_called()
+
+    def test_no_open_disables_browser_in_serve_mode(self):
+        with patch("main.serve_report") as serve:
+            status, browser, _ = self.run_main(self.weather, ["--serve", "--no-open"])
+        self.assertEqual(status, 0)
+        self.assertFalse(serve.call_args.kwargs["open_browser"])
+        browser.assert_not_called()
+
+    def test_docker_launch_does_not_fetch_weather_on_host(self):
+        with patch("docker_launcher.run_docker", return_value=0) as docker, \
+                patch("main.fetch_weather") as fetch:
+            self.assertEqual(main.main(["--docker", "--no-open"]), 0)
+        docker.assert_called_once_with(Path(main.__file__).resolve().parent, open_browser=False)
+        fetch.assert_not_called()
+
+    def test_docker_rejects_ignored_python_options(self):
+        for option in (["--no-report"], ["--serve"], ["--timeout", "1"],
+                       ["--port", "65536"], ["--report", "ignored.html"]):
+            with self.subTest(option=option), patch("docker_launcher.run_docker") as docker, \
+                    contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as error:
+                main.main(["--docker", *option])
+            self.assertEqual(error.exception.code, 2)
+            docker.assert_not_called()
 
     def test_partial_report_is_available_in_serve_mode(self):
         with patch("main.serve_report") as serve:

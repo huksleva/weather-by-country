@@ -153,15 +153,27 @@ def main(argv: list[str] | None = None) -> int:
                         help="Не открывать HTML-отчёт в браузере.")
     parser.add_argument("--no-report", action="store_true",
                         help="Вывести только консольный отчёт, без HTML.")
+    parser.add_argument("--docker", action="store_true",
+                        help="Запустить Docker Compose и открыть отчёт на компьютере.")
     parser.add_argument("--serve", action="store_true",
                         help="Показать готовый отчёт через локальный HTTP-сервер.")
     parser.add_argument("--port", type=positive_int, default=8000,
                         help="Порт HTTP-сервера при --serve (8000).")
     args = parser.parse_args(argv)
-    if args.serve and args.no_report:
-        parser.error("--serve нельзя использовать с --no-report.")
     if args.port > 65535:
         parser.error("Порт должен быть от 1 до 65535.")
+    if args.docker:
+        if (args.file != Path(__file__).with_name("cities.txt") or args.serve or args.no_report
+                or args.timeout != 20 or args.attempts != 3 or args.port != 8000
+                or args.report != Path(os.environ.get("WEATHER_REPORT_PATH", "reports/weather-report.html"))):
+            parser.error("С --docker допустим только --no-open; файл и порт задаются в .env.")
+        if __package__:
+            from .docker_launcher import run_docker
+        else:
+            from docker_launcher import run_docker
+        return run_docker(Path(__file__).resolve().parent, open_browser=not args.no_open)
+    if args.serve and args.no_report:
+        parser.error("--serve нельзя использовать с --no-report.")
     try:
         cities = load_cities(args.file)
     except (OSError, UnicodeError, ValueError) as error:
@@ -218,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.serve:
             try:
                 serve_report(report_path, host=os.environ.get("WEATHER_REPORT_HOST", "127.0.0.1"),
-                             port=args.port)
+                             port=args.port, open_browser=not args.no_open)
             except OSError as error:
                 print(f"Не удалось запустить просмотр отчёта: {error}", file=sys.stderr)
                 return 3
