@@ -218,7 +218,7 @@ python3 -m venv .venv
 использовать `py`, если Python установлен с этим средством запуска.
 
 ```console
-python main.py [file] [--timeout SECONDS] [--attempts COUNT] [--report PATH] [--no-open] [--no-report] [--serve] [--port PORT]
+python main.py [file] [--docker] [--timeout SECONDS] [--attempts COUNT] [--report PATH] [--no-open] [--no-report] [--serve] [--port PORT]
 ```
 
 | Параметр | Назначение | По умолчанию |
@@ -229,7 +229,7 @@ python main.py [file] [--timeout SECONDS] [--attempts COUNT] [--report PATH] [--
 | `--report` | Путь для HTML-отчёта | `reports/weather-report.html` |
 | `--no-open` | Сохранить HTML без открытия браузера | Открывать при прямом запуске Python |
 | `--no-report` | Только консольный вывод, без HTML | HTML включён |
-| `--docker` | Запустить Compose из репозитория и открыть браузер компьютера; требует Docker и Python на хосте. |
+| `--docker` | Запустить Compose из репозитория и открыть браузер компьютера; требует Docker и Python на хосте | Выключено |
 | `--serve` | Показывать готовый отчёт через локальный HTTP-сервер | Выключено; в Compose включено |
 | `--port` | Порт HTTP-сервера при `--serve` | `8000` |
 | `-h`, `--help` | Справка по команде | — |
@@ -250,7 +250,9 @@ python main.py --report reports/today.html --no-open
 открытие по умолчанию. В контейнере уже настроены `/reports/weather-report.html`
 и `WEATHER_NO_OPEN=1`: HTML сохраняется без открытия браузера.
 При своём пути в Docker используйте `/reports` — это сохраняемый Docker-том.
-Для ручного просмотра через HTTP используйте `--serve`; остановка — Ctrl+C.
+Для ручного просмотра через HTTP используйте `--serve`: браузер откроется после
+запуска сервера. Остановка — Ctrl+C. Режим `--docker` принимает только `--no-open`;
+свой файл и порт для Docker задайте в `.env`.
 
 ### Файл городов
 
