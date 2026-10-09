@@ -1,17 +1,21 @@
 <div align="center">
 
 <h1>Weather by Country</h1>
-<p>Текущая погода в городах. Понятная статистика по странам.</p>
+<p>Текущая погода в городах. Статистика по странам. Интерактивный HTML-отчёт.</p>
 
 <p>
   <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&amp;logoColor=white" alt="Запуск через Docker Compose"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&amp;logoColor=white" alt="Python 3.10 или новее"></a>
   <a href="https://github.com/huksleva/weather-by-country/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/huksleva/weather-by-country/tests.yml?branch=main&amp;label=tests&amp;logo=githubactions&amp;logoColor=white" alt="Статус автоматических тестов"></a>
+  <img src="https://img.shields.io/badge/HTML5-E34F26?logo=html5&amp;logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/CSS-663399?logo=css&amp;logoColor=white" alt="CSS">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&amp;logoColor=black" alt="JavaScript">
   <img src="https://img.shields.io/badge/dependencies-stdlib%20only-64748B" alt="Только стандартная библиотека">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-22A06B" alt="Лицензия MIT"></a>
 </p>
 
 <p>
+  <a href="#html-отчёт">HTML-отчёт</a> ·
   <a href="#демонстрация">Демонстрация</a> ·
   <a href="#быстрый-старт">Быстрый старт</a> ·
   <a href="#использование">Использование</a> ·
@@ -27,11 +31,32 @@
 и группирует результаты по странам. Проект создан как решение тестового задания;
 все температуры и итоговые показатели получаются и вычисляются во время запуска.
 
-- **Три платформы:** Windows 11, Linux и macOS; единая команда Docker Compose.
+- **Три платформы:** Windows 11, Linux и macOS; запуск через Docker Compose.
+- **Отчёт в браузере:** карточки городов, поиск, фильтры, сортировка и печать в PDF.
 - **Без установки пакетов:** только стандартная библиотека, без API-ключа.
 - **Один город — один результат:** пустые строки и повторы удаляются до запросов.
 - **Статистика по странам:** количество городов, среднее, минимум и максимум.
 - **Обработка сбоев:** тайм-ауты, повторные попытки и явное предупреждение о неполных данных.
+
+## HTML-отчёт
+
+![HTML-отчёт: общие показатели, диапазоны температур по странам и карточки восьми городов](docs/assets/report.png)
+
+Настоящий отчёт после запуска через Docker **9 октября 2026 года**.
+Данные получены от API; при следующем запуске значения могут измениться.
+
+По завершении расчётов программа сохраняет самостоятельный HTML-файл:
+
+- Количество обработанных городов, число стран, средняя температура и общий диапазон.
+- Карточки стран: среднее, минимум, максимум и количество городов. Все графики используют одну шкалу.
+- Поиск по городу или стране, фильтр по стране, сортировка по температуре и названию.
+- Адаптивное оформление для компьютера и телефона, кнопка **Печать / PDF**.
+- При ошибках API — статус неполных данных и список пропущенных городов с причинами.
+
+Файл работает офлайн: стили, графики и JavaScript встроены, внешние шрифты
+и сервисы не подключаются. Отчёт отражает данные на момент запуска и сам не обновляет погоду.
+Фильтры меняют список карточек; общие показатели и статистика стран сохраняют полный результат запуска.
+При печати используется выбранный список городов; формат PDF выбирается в диалоге браузера.
 
 ## Демонстрация
 
@@ -45,7 +70,7 @@
 
 ## Быстрый старт
 
-### Через Docker — одинаково на трёх платформах
+### Через Docker с автоматическим открытием отчёта
 
 Установите и запустите Docker. Python на компьютере для этого варианта не нужен.
 
@@ -55,16 +80,29 @@
 | macOS, Intel или Apple Silicon | [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/) для своей архитектуры |
 | Linux, AMD64 или ARM64 | [Docker Engine](https://docs.docker.com/engine/install/) и [плагин Compose](https://docs.docker.com/compose/install/linux/), либо Docker Desktop |
 
-Команды одинаковы в PowerShell на Windows и в терминале Linux/macOS:
+Сначала клонируйте проект:
 
 ```console
 git clone https://github.com/huksleva/weather-by-country.git
 cd weather-by-country
-docker compose run --rm --build weather
 ```
 
+Запустите скрипт своей системы из папки проекта:
+
+| Система | Команда |
+| --- | --- |
+| Windows 11, CMD | `run.cmd` |
+| Windows 11, PowerShell | `.\run.cmd` |
+| Linux или macOS | `sh run.sh` |
+
+Скрипт собирает и запускает контейнер, сохраняет новый отчёт в `reports/`
+и открывает его в браузере по умолчанию. Каждый запуск создаёт отдельный файл;
+отчёт остаётся на компьютере после удаления контейнера.
+На Linux для открытия нужен графический сеанс и `xdg-open`; на macOS используется `open`.
+На сервере без браузера HTML можно открыть вручную на другом компьютере.
+
 Первый запуск скачивает официальный образ Python 3.13 и собирает контейнер.
-Программа выводит отчёт и завершается; `--rm` удаляет завершённый контейнер.
+Программа выводит данные в консоль, сохраняет HTML и завершается; `--rm` удаляет завершённый контейнер.
 Публиковать порты или запускать фоновый сервис не требуется.
 Для сборки и получения погоды нужен интернет.
 
@@ -74,12 +112,37 @@ docker compose run --rm --build weather
 
 `cities.txt` подключается с компьютера в режиме только для чтения, поэтому его
 можно редактировать без изменения программы. Параметры CLI передаются после
-имени сервиса:
+команды запуска:
 
 ```console
-docker compose run --rm weather --timeout 15 --attempts 2
-docker compose run --rm weather --help
+# Windows CMD
+run.cmd --timeout 15 --attempts 2
+
+# Linux / macOS
+sh run.sh --timeout 15 --attempts 2
 ```
+
+Автоматическое открытие отключается переменной `WEATHER_NO_OPEN=1`, заданной
+на компьютере перед запуском скрипта. Для режима без HTML передайте `--no-report`.
+Скрипты сами выбирают путь отчёта; собственный `--report` удобнее задавать при прямом запуске Python или Compose.
+
+Для ручного запуска без автоматического открытия браузера:
+
+```console
+docker compose run --rm --build weather
+```
+
+HTML появится в `reports/weather-report.html`; следующий прямой запуск перезапишет его.
+На Linux сначала создайте папку от имени своего пользователя и передайте его UID/GID:
+
+```sh
+mkdir -p reports
+LOCAL_UID=$(id -u) LOCAL_GID=$(id -g) docker compose run --rm --build weather
+```
+
+`run.sh` делает это автоматически. Скрипт на macOS тоже передаёт UID/GID.
+Не запускайте `run.sh` через `sudo`: пользователь должен иметь доступ к Docker.
+Без вывода HTML можно использовать `docker compose run --rm weather --no-report`.
 
 Для другого входного файла создайте `.env` рядом с `compose.yaml`
 (образец — [.env.example](.env.example)):
@@ -97,8 +160,10 @@ CITIES_FILE="./data/my cities.txt"
 
 ```console
 docker build --tag weather-by-country .
-docker run --rm weather-by-country
+docker run --rm weather-by-country --no-report
 ```
+
+Этот вариант выводит только консольный отчёт. Для сохранения HTML на компьютере используйте Compose или скрипт запуска.
 
 ### Через Python
 
@@ -112,11 +177,13 @@ python main.py
 если команда `python` недоступна. Скрипт читает `cities.txt` рядом с собой.
 В комплекте — все восемь городов исходного задания.
 Устанавливать пакеты или настраивать учётную запись не требуется.
+HTML сохраняется в `reports/weather-report.html` относительно текущей папки
+и открывается через браузер по умолчанию. Следующий запуск перезаписывает этот файл.
 
 ## Использование
 
 ```console
-python main.py [file] [--timeout SECONDS] [--attempts COUNT]
+python main.py [file] [--timeout SECONDS] [--attempts COUNT] [--report PATH] [--no-open] [--no-report]
 ```
 
 | Параметр | Назначение | По умолчанию |
@@ -124,6 +191,9 @@ python main.py [file] [--timeout SECONDS] [--attempts COUNT]
 | `file` | Путь к файлу городов в UTF-8 | `cities.txt` рядом с `main.py` |
 | `--timeout` | Тайм-аут одного запроса, секунды | `20` |
 | `--attempts` | Максимум попыток при временной ошибке | `3` |
+| `--report` | Путь для HTML-отчёта | `reports/weather-report.html` |
+| `--no-open` | Сохранить HTML без открытия браузера | Открывать при прямом запуске Python |
+| `--no-report` | Только консольный вывод, без HTML | HTML включён |
 | `-h`, `--help` | Справка по команде | — |
 
 Например, для своего списка:
@@ -131,6 +201,17 @@ python main.py [file] [--timeout SECONDS] [--attempts COUNT]
 ```console
 python main.py my-cities.txt --timeout 15 --attempts 2
 ```
+
+Чтобы сохранить отдельный HTML без автоматического открытия:
+
+```console
+python main.py --report reports/today.html --no-open
+```
+
+Переменные `WEATHER_REPORT_PATH` и `WEATHER_NO_OPEN=1` задают путь и отключают
+открытие по умолчанию. В контейнере уже настроены `/reports/weather-report.html`
+и `WEATHER_NO_OPEN=1`; браузер открывает скрипт на компьютере.
+При своём пути в Compose используйте каталог `/reports`, подключённый к компьютеру.
 
 ### Файл городов
 
@@ -166,13 +247,13 @@ Moscow
 Чтобы сохранить отчёт отдельно от сообщений об ошибках:
 
 ```console
-python main.py > weather.txt 2> errors.txt
+python main.py --no-report > weather.txt 2> errors.txt
 ```
 
 Для запуска через Compose:
 
 ```console
-docker compose run --rm -T weather > weather.txt 2> errors.txt
+docker compose run --rm -T weather --no-report > weather.txt 2> errors.txt
 ```
 
 `-T` отключает псевдотерминал для сохранения потоков. Compose также может
@@ -193,6 +274,7 @@ docker compose run --rm -T weather > weather.txt 2> errors.txt
 | `0` | Данные получены для всех городов |
 | `1` | Есть ошибки API; результат неполный или пустой |
 | `2` | Ошибка входного файла или аргументов |
+| `3` | Не удалось записать HTML; консольные результаты уже выведены |
 | `130` | Выполнение прервано пользователем |
 
 ## Как это работает
@@ -220,7 +302,8 @@ API определяет местоположение по названию. О�
 Запросы выполняются последовательно, данные не кэшируются. Доступность
 и актуальность погоды зависят от wttr.in. Скрипт передаёт сервису название города;
 как при любом прямом HTTPS-запросе, сервис также видит IP-адрес клиента.
-В программе нет собственной телеметрии или автоматического сохранения отчётов.
+В программе нет собственной телеметрии. HTML сохраняется локально в указанную папку;
+автоматической загрузки отчётов в облако нет. Папка `reports/` исключена из Git.
 
 ## Проверка
 
@@ -231,6 +314,8 @@ python -m unittest discover -s tests -v
 Тесты выполняются без интернета: ответы API подменяются через `unittest.mock`.
 Проверяются загрузка и удаление повторов, схема JSON, кодирование URL,
 повторные запросы, расчёты с отрицательными температурами и частичные ошибки.
+Также проверяются HTML-экранирование, пустой отчёт, сохранение файла, открытие браузера
+после записи и ошибки файловой системы.
 
 [GitHub Actions](https://github.com/huksleva/weather-by-country/actions/workflows/tests.yml)
 запускает тесты и проверяет `--help` при каждом push в `main` и в pull request:
@@ -243,7 +328,7 @@ python -m unittest discover -s tests -v
 
 Дополнительно CI собирает и проверяет Docker-образы на **AMD64 и ARM64**:
 офлайн-тесты, справку CLI, запуск без root, подключение своего файла с пробелами
-и Unicode, а также передачу кода ошибки через Compose.
+и Unicode, передачу кода ошибки через Compose и сохранение HTML на компьютере.
 Docker Desktop на macOS в CI не запускается: переносимость Linux-контейнера
 проверяется на двух архитектурах, а Python-код отдельно тестируется на macOS.
 
@@ -259,12 +344,16 @@ docker run --rm --network none --read-only --tmpfs /tmp weather-by-country:test
 ```text
 weather-by-country/
 ├── main.py                    # CLI, запросы, модели и статистика
+├── report.py                  # Расчёт показателей отчёта и запись HTML
+├── report_template.html        # Автономное оформление, поиск и фильтры
+├── run.cmd / run.sh            # Docker и открытие отчёта на компьютере
+├── reports/                    # Создаваемые отчёты, исключены из Git
 ├── cities.txt                 # Исходный список городов
 ├── Dockerfile                 # Образы для запуска и тестов
 ├── compose.yaml               # Единая команда запуска и подключение входного файла
 ├── .dockerignore              # В сборку попадают только необходимые исходники
 ├── .env.example               # Образец выбора входного файла
-├── tests/test_main.py          # Тесты без обращения к API
+├── tests/                     # Тесты CLI и HTML без обращения к API
 ├── docs/assets/               # GIF, статический снимок и текст демонстрации
 ├── .github/workflows/tests.yml # Автоматические проверки
 ├── CONTRIBUTING.md            # Как предложить изменение
@@ -281,6 +370,10 @@ weather-by-country/
   файла и права чтения; в контейнере он доступен как `/app/cities.txt`.
 - **API недоступен:** проверьте интернет, настройки прокси и диагностику `stderr`.
   Правила обработки неполных результатов одинаковы для Docker и прямого запуска.
+- **Не удалось записать HTML:** проверьте права на `reports/` и свободное место.
+  На Linux используйте `sh run.sh`, чтобы контейнер писал от имени вашего пользователя.
+- **Браузер не открылся:** откройте созданный HTML из `reports/` вручную.
+  Прямой запуск Compose только сохраняет файл; автоматически открывают его `run.cmd` и `run.sh`.
 
 ## Участие и поддержка
 
